@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Payjust +$ | Earn Money Daily</title>
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Adsgram SDK -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-body: #0d111a;
+            --card-dark: #151a26;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --gold-gradient: linear-gradient(135deg, #2b2216 0%, #1d1815 100%);
+            --gold-border: rgba(245, 197, 66, 0.28);
+            --gold-text: #f5c542;
+            --accent-green: #10b981;
+            --accent-green-bg: rgba(16, 185, 129, 0.12);
+            --accent-red: #ef4444;
+            --accent-red-bg: rgba(239, 68, 68, 0.12);
+            --accent-amber: #f59e0b;
+            --accent-amber-bg: rgba(245, 158, 11, 0.12);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 14px 14px 90px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ================= 1. HEADER HERO CARD (MATCHING SCREENSHOT 2) ================= */
+        .hero-card {
+            background: var(--gold-gradient);
+            border: 1px solid var(--gold-border);
+            border-radius: 24px;
+            padding: 22px 20px 16px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            margin-bottom: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .balance-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--gold-text);
+            text-transform: uppercase;
+        }
+        .balance-value {
+            font-size: 38px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            margin: 2px 0 4px;
+        }
+        .balance-sub {
+            font-size: 12px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #38bdf8;
+            color: #042f2c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+        .user-meta {
+            text-align: right;
+        }
+        .user-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .user-id {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* Chip Navigation under Header */
+        .chip-nav {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 14px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .chip-nav::-webkit-scrollbar { display: none; }
+        .chip-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 8px 14px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .chip-btn.active {
+            background: #ffffff;
+            color: #0f172a;
+            border-color: #ffffff;
+            font-weight: 700;
+        }
+
+        /* ================= 2. PAGE SECTIONS ================= */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .page-section.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            margin-bottom: 14px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+        }
+        .section-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        /* ================= WATCH ADS CARD (SCREENSHOT 2) ================= */
+        .ad-action-card {
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 20px;
+            color: #0f172a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .ad-main-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+        }
+        .play-icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            transition: transform 0.15s;
+        }
+        .play-icon-box:active { transform: scale(0.92); }
+        .play-triangle {
+            width: 0;
+            height: 0;
+            border-top: 9px solid transparent;
+            border-bottom: 9px solid transparent;
+            border-left: 15px solid #ffffff;
+            margin-left: 3px;
+        }
+        .ad-text-content {
+            flex: 1;
+        }
+        .ad-cta-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .ad-cta-sub {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .ad-reward-pill {
+            background: #1e293b;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* Progress Bar inside Ad Card */
+        .progress-container {
+            margin-top: 16px;
+            background: #f1f5f9;
+            height: 7px;
+            border-radius: 99px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #eab308);
+            border-radius: 99px;
+            width: 33%;
+            transition: width 0.4s ease;
+        }
+        .progress-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .status-ready {
+            color: #059669;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            display: inline-block;
+        }
+        .limit-counter {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Bottom Two Stats Cards (Screenshot 2) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-box {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 16px 14px;
+        }
+        .stat-box-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .stat-box-val {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            margin-top: 4px;
+        }
+
+        /* ================= 3. WITHDRAWAL PAGE (SCREENSHOT 3) ================= */
+        .withdraw-card {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 20px 16px;
+            margin-bottom: 16px;
+        }
+        .method-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .method-tab {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 12px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .method-tab.active {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        .method-icon { font-size: 20px; margin-bottom: 4px; }
+        .method-title { font-size: 11px; font-weight: 700; color: #ffffff; }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: #38bdf8; }
+        .form-help {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .btn-submit-withdraw {
+            width: 100%;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s;
+        }
+        .btn-submit-withdraw:active { transform: scale(0.98); }
+
+        /* ================= 4. WITHDRAWAL REQUIREMENTS (SCREENSHOT 3) ================= */
+        .req-box {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 20px 16px;
+            margin-top: 16px;
+        }
+        .req-header-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .req-icon-title {
+            font-size: 18px;
+        }
+        .req-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .req-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .req-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .req-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            padding: 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .req-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .req-status-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .icon-done {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .icon-pending {
+            background: var(--accent-amber-bg);
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .req-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .req-detail {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .badge-pill {
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .badge-done {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .badge-pending {
+            background: var(--accent-red-bg);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* ================= 5. TASKS LIST ================= */
+        .task-card {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .task-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .task-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .task-title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .task-reward {
+            font-size: 12px;
+            color: var(--gold-text);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .btn-task-claim {
+            background: #38bdf8;
+            color: #042f2c;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-task-claim.claimed {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* ================= 6. INVITE FRIENDS SECTION ================= */
+        .invite-box {
+            background: var(--card-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px 16px;
+            text-align: center;
+        }
+        .invite-link-field {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #38bdf8;
+            margin: 14px 0;
+            word-break: break-all;
+        }
+        .btn-copy {
+            background: #ffffff;
+            color: #0f172a;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 800;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* ================= 7. ADMIN FLOATING BUTTON & PANEL ================= */
+        .admin-float-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f59e0b;
+            color: #000;
+            font-weight: 800;
+            font-size: 13px;
+            padding: 10px 16px;
+            border-radius: 99px;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
+            display: none;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .admin-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .admin-modal-card {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 440px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            border: 1px solid #38bdf8;
+            color: #ffffff;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ================= 1. HERO TOTAL BALANCE CARD (SCREENSHOT 2) ================= -->
+    <div class="hero-card">
+        <div class="hero-top-row">
+            <div>
+                <div class="balance-label">TOTAL BALANCE</div>
+                <div class="balance-value">$<span id="balanceDisplay">27.00</span></div>
+                <div class="balance-sub">Available to withdraw</div>
+            </div>
+            <div class="user-pill">
+                <div class="avatar-circle" id="userAvatar">SC</div>
+                <div class="user-meta">
+                    <div class="user-name" id="userName">Surendra</div>
+                    <div class="user-id" id="userIdText">ID: 8828732820</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Horizontal Chips inside Header -->
+        <div class="chip-nav">
+            <button class="chip-btn active" onclick="switchSection('ads')">Watch Ads</button>
+            <button class="chip-btn" onclick="switchSection('tasks')">Complete Tasks</button>
+            <button class="chip-btn" onclick="switchSection('refer')">Invite Friends</button>
+            <button class="chip-btn" onclick="switchSection('withdraw')">Withdraw</button>
+        </div>
+    </div>
+
+    <!-- ================= 2. WATCH ADS SECTION (SCREENSHOT 2) ================= -->
+    <div class="page-section active" id="sec-ads">
+        <div class="section-header">
+            <div class="section-title">Watch Ads & Earn</div>
+            <div class="section-desc">Complete and watch a short video ads and earn $<span id="adRewardText">0.30</span></div>
+        </div>
+
+        <!-- Big Ad Action Card -->
+        <div class="ad-action-card">
+            <div class="ad-main-row" onclick="watchRewardedAd()">
+                <div class="play-icon-box">
+                    <div class="play-triangle"></div>
+                </div>
+                <div class="ad-text-content">
+                    <div class="ad-cta-title">Watch Ad</div>
+                    <div class="ad-cta-sub">Complete video to earn instantly</div>
+                </div>
+                <div class="ad-reward-pill">+$<span id="adPillText">0.30</span></div>
+            </div>
+
+            <!-- Progress line -->
+            <div class="progress-container">
+                <div class="progress-bar-fill" id="adProgressFill" style="width: 33%;"></div>
+            </div>
+            <div class="progress-label-row">
+                <div class="status-ready">
+                    <span class="status-dot"></span> Ready to earn
+                </div>
+                <div class="limit-counter"><span id="adsWatchedToday">5</span> / <span id="adDailyLimit">15</span> today</div>
+            </div>
+        </div>
+
+        <!-- Bottom Stats Row -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-box-label">TOTAL WATCHED</div>
+                <div class="stat-box-val"><span id="totalAdsWatched">80</span> ads</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-label">TOTAL EARNED</div>
+                <div class="stat-box-val">$<span id="totalEarnedFromAds">24.00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. COMPLETE TASKS SECTION ================= -->
+    <div class="page-section" id="sec-tasks">
+        <div class="section-header">
+            <div class="section-title">Complete Tasks</div>
+            <div class="section-desc">Join partner channels and earn instant rewards</div>
+        </div>
+
+        <div class="task-card">
+            <div class="task-left">
+                <div class="task-icon">📢</div>
+                <div>
+                    <div class="task-title">Join Official Telegram</div>
+                    <div class="task-reward">+$0.10 Reward</div>
+                </div>
+            </div>
+            <button class="btn-task-claim" id="task1Btn" onclick="claimTask(1, 0.10, 'https://t.me/Payjust_bot')">Claim</button>
+        </div>
+
+        <div class="task-card">
+            <div class="task-left">
+                <div class="task-icon">▶️</div>
+                <div>
+                    <div class="task-title">Subscribe to YouTube</div>
+                    <div class="task-reward">+$0.10 Reward</div>
+                </div>
+            </div>
+            <button class="btn-task-claim" id="task2Btn" onclick="claimTask(2, 0.10, 'https://youtube.com')">Claim</button>
+        </div>
+
+        <div class="task-card">
+            <div class="task-left">
+                <div class="task-icon">🐦</div>
+                <div>
+                    <div class="task-title">Follow on Twitter / X</div>
+                    <div class="task-reward">+$0.10 Reward</div>
+                </div>
+            </div>
+            <button class="btn-task-claim" id="task3Btn" onclick="claimTask(3, 0.10, 'https://twitter.com')">Claim</button>
+        </div>
+
+        <div class="task-card">
+            <div class="task-left">
+                <div class="task-icon">👥</div>
+                <div>
+                    <div class="task-title">Join Partner Group</div>
+                    <div class="task-reward">+$0.10 Reward</div>
+                </div>
+            </div>
+            <button class="btn-task-claim" id="task4Btn" onclick="claimTask(4, 0.10, 'https://t.me/Payjust_bot')">Claim</button>
+        </div>
+    </div>
+
+    <!-- ================= 4. INVITE FRIENDS SECTION ================= -->
+    <div class="page-section" id="sec-refer">
+        <div class="section-header">
+            <div class="section-title">Invite Friends</div>
+            <div class="section-desc">Earn $<span id="refRewardRate">0.75</span> for every invited friend</div>
+        </div>
+
+        <div class="invite-box">
+            <div style="font-size: 32px; margin-bottom: 8px;">🎁</div>
+            <div style="font-size: 16px; font-weight: 800;">Your Referral Link</div>
+            <div class="invite-link-field" id="refLinkText">Loading...</div>
+            <button class="btn-copy" onclick="copyReferralLink()">📋 Copy Invite Link</button>
+        </div>
+    </div>
+
+    <!-- ================= 5. WITHDRAWAL SECTION (SCREENSHOT 3) ================= -->
+    <div class="page-section" id="sec-withdraw">
+        <div class="section-header">
+            <div class="section-title">Withdraw Funds</div>
+            <div class="section-desc">Direct payouts to Crypto, PayPal or Mobile</div>
+        </div>
+
+        <div class="withdraw-card">
+            <!-- Method Tabs -->
+            <div class="method-tabs">
+                <div class="method-tab active" onclick="selectMethod('USDT TRC20', 'Enter your USDT TRC20 wallet address', 'e.g. TXyz...abc', this)">
+                    <div class="method-icon">₮</div>
+                    <div class="method-title">USDT TRC20</div>
+                </div>
+                <div class="method-tab" onclick="selectMethod('PayPal', 'Enter your PayPal email address', 'e.g. name@paypal.com', this)">
+                    <div class="method-icon">🅿</div>
+                    <div class="method-title">PayPal</div>
+                </div>
+                <div class="method-tab" onclick="selectMethod('Mobile Top-Up', 'Enter mobile number & operator', 'e.g. 9876543210 (Jio/Airtel)', this)">
+                    <div class="method-icon">📱</div>
+                    <div class="method-title">Mobile Top-Up</div>
+                </div>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="form-group">
+                <label class="form-label">AMOUNT</label>
+                <input class="form-input" id="withdrawAmountInput" type="number" step="0.01" placeholder="Enter amount (e.g. 10.00)">
+                <span class="form-help">Available balance: $<span id="availBalHint">27.00</span> • Min $<span id="minWithHint">10.00</span></span>
+            </div>
+
+            <!-- Wallet Address Input -->
+            <div class="form-group">
+                <label class="form-label" id="walletFieldLabel">WALLET ADDRESS</label>
+                <input class="form-input" id="walletAddressInput" type="text" placeholder="e.g. TXyz...abc">
+                <span class="form-help" id="walletFieldHelp">Enter your USDT TRC20 wallet address</span>
+            </div>
+
+            <button class="btn-submit-withdraw" onclick="submitWithdrawalRequest()">
+                🚀 Submit Withdrawal Request
+            </button>
+        </div>
+
+        <!-- ================= 4 WITHDRAWAL REQUIREMENTS (SCREENSHOT 3) ================= -->
+        <div class="req-box">
+            <div class="req-header-row">
+                <div class="req-icon-title">📋</div>
+                <div>
+                    <div class="req-title">Withdrawal Requirements</div>
+                    <div class="req-sub">Complete the steps below to unlock your withdrawal.</div>
+                </div>
+            </div>
+
+            <div class="req-list">
+                <!-- Requirement 1: Min Balance -->
+                <div class="req-item" id="reqItem1">
+                    <div class="req-item-left">
+                        <div class="req-status-icon icon-done" id="reqIcon1">✓</div>
+                        <div>
+                            <div class="req-name">Minimum $<span id="reqMinBalText">10.00</span> Balance</div>
+                            <div class="req-detail">Your balance: $<span id="reqUserBalText">27.00</span></div>
+                        </div>
+                    </div>
+                    <div class="badge-pill badge-done" id="reqBadge1">Done</div>
+                </div>
+
+                <!-- Requirement 2: 5 Invites -->
+                <div class="req-item" id="reqItem2">
+                    <div class="req-item-left">
+                        <div class="req-status-icon icon-pending" id="reqIcon2">!</div>
+                        <div>
+                            <div class="req-name">Invite <span id="reqTargetInvText">5</span> Friends</div>
+                            <div class="req-detail">Friends invited: <span id="reqUserInvText">2</span></div>
+                        </div>
+                    </div>
+                    <div class="badge-pill badge-pending" id="reqBadge2">2 / 5</div>
+                </div>
+
+                <!-- Requirement 3: Complete All Tasks -->
+                <div class="req-item" id="reqItem3">
+                    <div class="req-item-left">
+                        <div class="req-status-icon icon-done" id="reqIcon3">✓</div>
+                        <div>
+                            <div class="req-name">Complete All Tasks</div>
+                            <div class="req-detail">Tasks done: <span id="reqTasksDoneText">4</span> / 4</div>
+                        </div>
+                    </div>
+                    <div class="badge-pill badge-done" id="reqBadge3">Done</div>
+                </div>
+
+                <!-- Requirement 4: Watch 80 Ads -->
+                <div class="req-item" id="reqItem4">
+                    <div class="req-item-left">
+                        <div class="req-status-icon icon-done" id="reqIcon4">✓</div>
+                        <div>
+                            <div class="req-name">Watch <span id="reqTargetAdsText">80</span> Ads</div>
+                            <div class="req-detail">Ads watched: <span id="reqUserAdsText">80</span></div>
+                        </div>
+                    </div>
+                    <div class="badge-pill badge-done" id="reqBadge4">Done</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Admin Floating Button -->
+<div class="admin-float-btn" id="adminFloatBtn" onclick="openAdminModal()">
+    ⚙️ Admin Settings
+</div>
+
+<!-- Admin Modal -->
+<div class="admin-modal" id="adminModal">
+    <div class="admin-modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div style="font-size:18px; font-weight:800; color:#f59e0b;">👑 Admin Settings Panel</div>
+            <div style="font-size:22px; cursor:pointer;" onclick="closeAdminModal()">✕</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Ad Reward ($)</label>
+            <input class="form-input" id="admAdReward" type="number" step="0.01" value="0.30">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Daily Ad Limit</label>
+            <input class="form-input" id="admDailyLimit" type="number" value="15">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Referral Reward ($)</label>
+            <input class="form-input" id="admRefReward" type="number" step="0.01" value="0.75">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Min Withdrawal ($)</label>
+            <input class="form-input" id="admMinWithdraw" type="number" step="0.01" value="10.00">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Required Invites Count</label>
+            <input class="form-input" id="admReqInvites" type="number" value="5">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Required Ads Count</label>
+            <input class="form-input" id="admReqAds" type="number" value="80">
+        </div>
+
+        <button class="btn-copy" style="background:#f59e0b; color:#000; margin-top:10px;" onclick="saveAdminSettings()">
+            💾 Save All Settings
+        </button>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // ==========================================
+    // 1. STATE & TELEGRAM INIT
+    // ==========================================
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        tg.ready();
+        tg.expand();
+    }
+
+    const tgUser = tg?.initDataUnsafe?.user;
+    const userId = tgUser?.id || 8828732820; // Default to client ID for testing
+    const firstName = tgUser?.first_name || "Surendra";
+    const ADMIN_ID = 8828732820;
+
+    // Set Header User Info
+    document.getElementById("userName").textContent = firstName;
+    document.getElementById("userIdText").textContent = `ID: ${userId}`;
+    const initials = (firstName.slice(0, 1) + (tgUser?.last_name ? tgUser.last_name.slice(0, 1) : "C")).toUpperCase();
+    document.getElementById("userAvatar").textContent = initials || "SC";
+
+    // Show Admin Button if Admin
+    if (userId === ADMIN_ID) {
+        document.getElementById("adminFloatBtn").style.display = "flex";
+    }
+
+    // Default App Settings
+    let appSettings = {
+        adReward: 0.30,
+        dailyAdLimit: 15,
+        refReward: 0.75,
+        minWithdrawal: 10.00,
+        requiredInvites: 5,
+        requiredAds: 80
+    };
+
+    // Load custom admin settings from storage if modified
+    const savedSettings = localStorage.getItem("payjust_admin_settings");
+    if (savedSettings) {
+        try { Object.assign(appSettings, JSON.parse(savedSettings)); } catch(e){}
+    }
+
+    // User State in LocalStorage
+    const USER_STORAGE_KEY = `payjust_user_${userId}`;
+    let userState = {
+        balance: 27.00, // Matches client screenshot balance
+        adsWatchedToday: 5,
+        totalAdsWatched: 80,
+        totalEarnedFromAds: 24.00,
+        friendsInvited: 2,
+        tasksDone: [1, 2, 3, 4],
+        lastAdDate: new Date().toISOString().slice(0, 10)
+    };
+
+    const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+    if (savedUser) {
+        try { Object.assign(userState, JSON.parse(savedUser)); } catch(e){}
+    }
+
+    // Reset daily ads if new date
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (userState.lastAdDate !== todayStr) {
+        userState.adsWatchedToday = 0;
+        userState.lastAdDate = todayStr;
+        saveState();
+    }
+
+    function saveState() {
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userState));
+        renderUI();
+    }
+
+    // ==========================================
+    // 2. RENDER UI MATCHING SCREENSHOTS
+    // ==========================================
+    function renderUI() {
+        // Balance
+        document.getElementById("balanceDisplay").textContent = userState.balance.toFixed(2);
+        document.getElementById("availBalHint").textContent = userState.balance.toFixed(2);
+        document.getElementById("reqUserBalText").textContent = userState.balance.toFixed(2);
+
+        // Ads
+        document.getElementById("adRewardText").textContent = appSettings.adReward.toFixed(2);
+        document.getElementById("adPillText").textContent = appSettings.adReward.toFixed(2);
+        document.getElementById("adsWatchedToday").textContent = userState.adsWatchedToday;
+        document.getElementById("adDailyLimit").textContent = appSettings.dailyAdLimit;
+        document.getElementById("totalAdsWatched").textContent = userState.totalAdsWatched;
+        document.getElementById("totalEarnedFromAds").textContent = userState.totalEarnedFromAds.toFixed(2);
+
+        const progressPercent = Math.min((userState.adsWatchedToday / appSettings.dailyAdLimit) * 100, 100);
+        document.getElementById("adProgressFill").style.width = `${progressPercent}%`;
+
+        // Referrals
+        document.getElementById("refRewardRate").textContent = appSettings.refReward.toFixed(2);
+        document.getElementById("reqUserInvText").textContent = userState.friendsInvited;
+        document.getElementById("reqTargetInvText").textContent = appSettings.requiredInvites;
+
+        // Requirements Config
+        document.getElementById("minWithHint").textContent = appSettings.minWithdrawal.toFixed(2);
+        document.getElementById("reqMinBalText").textContent = appSettings.minWithdrawal.toFixed(2);
+        document.getElementById("reqTargetAdsText").textContent = appSettings.requiredAds;
+        document.getElementById("reqUserAdsText").textContent = userState.totalAdsWatched;
+
+        // Requirement 1: Min Balance Check
+        const isBalMet = userState.balance >= appSettings.minWithdrawal;
+        updateReqStatus(1, isBalMet, "Done", `$${userState.balance.toFixed(2)}`);
+
+        // Requirement 2: Invites Check
+        const isInvMet = userState.friendsInvited >= appSettings.requiredInvites;
+        updateReqStatus(2, isInvMet, "Done", `${userState.friendsInvited} / ${appSettings.requiredInvites}`);
+
+        // Requirement 3: Tasks Check (4 tasks)
+        const isTasksMet = (userState.tasksDone?.length || 0) >= 4;
+        updateReqStatus(3, isTasksMet, "Done", `${userState.tasksDone?.length || 0} / 4`);
+
+        // Requirement 4: 80 Ads Check
+        const isAdsMet = userState.totalAdsWatched >= appSettings.requiredAds;
+        updateReqStatus(4, isAdsMet, "Done", `${userState.totalAdsWatched} / ${appSettings.requiredAds}`);
+
+        // Referral Link
+        const botUser = tg?.initDataUnsafe?.bot?.username || "Payjust_bot";
+        document.getElementById("refLinkText").textContent = `https://t.me/${botUser}?start=${userId}`;
+    }
+
+    function updateReqStatus(reqNum, isDone, doneText, pendingText) {
+        const icon = document.getElementById(`reqIcon${reqNum}`);
+        const badge = document.getElementById(`reqBadge${reqNum}`);
+        if (isDone) {
+            icon.className = "req-status-icon icon-done";
+            icon.textContent = "✓";
+            badge.className = "badge-pill badge-done";
+            badge.textContent = doneText;
+        } else {
+            icon.className = "req-status-icon icon-pending";
+            icon.textContent = "!";
+            badge.className = "badge-pill badge-pending";
+            badge.textContent = pendingText;
+        }
+    }
+
+    // ==========================================
+    // 3. ADSGRAM INTEGRATION (BLOCK ID 53264)
+    // ==========================================
+    let adController = null;
+    try {
+        if (window.Adsgram) {
+            adController = window.Adsgram.init({
+                blockId: "53264"
+            });
+        }
+    } catch(e) {
+        console.warn("Adsgram init:", e);
+    }
+
+    async function watchRewardedAd() {
+        if (userState.adsWatchedToday >= appSettings.dailyAdLimit) {
+            showToast(`⏳ Daily limit (${appSettings.dailyAdLimit} ads) reached! Come back tomorrow.`);
+            return;
+        }
+
+        if (adController) {
+            try {
+                showToast("🎬 Loading rewarded ad...");
+                const res = await adController.show();
+                if (res?.done) {
+                    creditAdSuccess();
+                } else {
+                    showToast("❌ Ad skipped — No reward given.");
+                }
+            } catch(e) {
+                showToast("⚠️ Ad error: " + (e?.message || "Please try again"));
+            }
+        } else {
+            // Simulator when tested outside Telegram
+            showToast("🎬 Loading sponsor ad...");
+            setTimeout(() => {
+                creditAdSuccess();
+            }, 1500);
+        }
+    }
+
+    function creditAdSuccess() {
+        userState.balance += appSettings.adReward;
+        userState.adsWatchedToday += 1;
+        userState.totalAdsWatched += 1;
+        userState.totalEarnedFromAds += appSettings.adReward;
+        saveState();
+
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        showToast(`🎉 Ad watched! +$${appSettings.adReward.toFixed(2)} credited!`);
+
+        // Send event to bot
+        sendBotEvent("ad_reward", {
+            amount: appSettings.adReward,
+            totalBalance: userState.balance
+        });
+    }
+
+    // ==========================================
+    // 4. TASK CLAIMS
+    // ==========================================
+    function claimTask(taskId, reward, link) {
+        if (userState.tasksDone.includes(taskId)) {
+            showToast("✅ Task already completed!");
+            return;
+        }
+        if (link) window.open(link, "_blank");
+        setTimeout(() => {
+            userState.tasksDone.push(taskId);
+            userState.balance += reward;
+            saveState();
+            showToast(`🎉 Task completed! +$${reward.toFixed(2)} credited!`);
+        }, 1000);
+    }
+
+    // ==========================================
+    // 5. WITHDRAWAL SUBMISSION
+    // ==========================================
+    let selectedMethod = "USDT TRC20";
+
+    function selectMethod(method, label, placeholder, elem) {
+        selectedMethod = method;
+        document.querySelectorAll(".method-tab").forEach(m => m.classList.remove("active"));
+        elem.classList.add("active");
+        document.getElementById("walletFieldLabel").textContent = method === "PayPal" ? "PAYPAL EMAIL" : (method === "Mobile Top-Up" ? "PHONE NUMBER" : "WALLET ADDRESS");
+        document.getElementById("walletAddressInput").placeholder = placeholder;
+        document.getElementById("walletFieldHelp").textContent = label;
+    }
+
+    function submitWithdrawalRequest() {
+        const amt = parseFloat(document.getElementById("withdrawAmountInput").value);
+        const address = document.getElementById("walletAddressInput").value.trim();
+
+        // 1. Check all 4 requirements first
+        const isBalMet = userState.balance >= appSettings.minWithdrawal;
+        const isInvMet = userState.friendsInvited >= appSettings.requiredInvites;
+        const isTasksMet = (userState.tasksDone?.length || 0) >= 4;
+        const isAdsMet = userState.totalAdsWatched >= appSettings.requiredAds;
+
+        if (!isBalMet || !isInvMet || !isTasksMet || !isAdsMet) {
+            let missing = [];
+            if (!isBalMet) missing.push(`Min $${appSettings.minWithdrawal} balance`);
+            if (!isInvMet) missing.push(`Invite ${appSettings.requiredInvites} friends (currently ${userState.friendsInvited})`);
+            if (!isTasksMet) missing.push(`Complete all tasks`);
+            if (!isAdsMet) missing.push(`Watch ${appSettings.requiredAds} ads`);
+            
+            showToast(`⚠️ Incomplete requirements: ${missing[0]}`);
+            return;
+        }
+
+        if (!amt || amt < appSettings.minWithdrawal) {
+            showToast(`⚠️ Minimum withdrawal is $${appSettings.minWithdrawal.toFixed(2)}`);
+            return;
+        }
+        if (amt > userState.balance) {
+            showToast(`⚠️ Insufficient balance! ($${userState.balance.toFixed(2)} available)`);
+            return;
+        }
+        if (!address) {
+            showToast("⚠️ Please enter your wallet / payment address!");
+            return;
+        }
+
+        // Deduct balance and send request
+        userState.balance -= amt;
+        saveState();
+
+        sendBotEvent("withdraw_request", {
+            amount: amt,
+            method: selectedMethod,
+            address: address
+        });
+
+        showToast("🚀 Withdrawal request submitted successfully!");
+        document.getElementById("withdrawAmountInput").value = "";
+        document.getElementById("walletAddressInput").value = "";
+    }
+
+    // ==========================================
+    // 6. SECTION SWITCHING
+    // ==========================================
+    function switchSection(secId) {
+        document.querySelectorAll(".chip-btn").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".page-section").forEach(sec => sec.classList.remove("active"));
+
+        const targetBtn = Array.from(document.querySelectorAll(".chip-btn")).find(b => b.textContent.toLowerCase().includes(secId.toLowerCase()));
+        if (targetBtn) targetBtn.classList.add("active");
+
+        const targetSec = document.getElementById(`sec-${secId}`);
+        if (targetSec) targetSec.classList.add("active");
+
+        if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    }
+
+    function copyReferralLink() {
+        const link = document.getElementById("refLinkText").textContent;
+        navigator.clipboard.writeText(link);
+        showToast("📋 Referral link copied to clipboard!");
+    }
+
+    // ==========================================
+    // 7. ADMIN MODAL ACTIONS
+    // ==========================================
+    function openAdminModal() {
+        document.getElementById("admAdReward").value = appSettings.adReward;
+        document.getElementById("admDailyLimit").value = appSettings.dailyAdLimit;
+        document.getElementById("admRefReward").value = appSettings.refReward;
+        document.getElementById("admMinWithdraw").value = appSettings.minWithdrawal;
+        document.getElementById("admReqInvites").value = appSettings.requiredInvites;
+        document.getElementById("admReqAds").value = appSettings.requiredAds;
+        document.getElementById("adminModal").style.display = "flex";
+    }
+
+    function closeAdminModal() {
+        document.getElementById("adminModal").style.display = "none";
+    }
+
+    function saveAdminSettings() {
+        appSettings.adReward = parseFloat(document.getElementById("admAdReward").value) || 0.30;
+        appSettings.dailyAdLimit = parseInt(document.getElementById("admDailyLimit").value) || 15;
+        appSettings.refReward = parseFloat(document.getElementById("admRefReward").value) || 0.75;
+        appSettings.minWithdrawal = parseFloat(document.getElementById("admMinWithdraw").value) || 10.00;
+        appSettings.requiredInvites = parseInt(document.getElementById("admReqInvites").value) || 5;
+        appSettings.requiredAds = parseInt(document.getElementById("admReqAds").value) || 80;
+
+        localStorage.setItem("payjust_admin_settings", JSON.stringify(appSettings));
+        closeAdminModal();
+        renderUI();
+        showToast("✅ Admin settings updated successfully!");
+
+        // Send updated settings to bot backend
+        sendBotEvent("admin_settings_update", appSettings);
+    }
+
+    function sendBotEvent(event, data) {
+        try {
+            if (tg) {
+                tg.sendData(JSON.stringify({ event, userId, ...data }));
+            }
+        } catch(e) {
+            console.warn("sendData error:", e);
+        }
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.className = "toast show";
+        setTimeout(() => { toast.className = "toast"; }, 2800);
+    }
+
+    // Initial render
+    renderUI();
+</script>
+
+</body>
+</html>
