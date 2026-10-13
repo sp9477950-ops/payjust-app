@@ -644,14 +644,14 @@
         <div class="hero-top-row">
             <div>
                 <div class="balance-label">TOTAL BALANCE</div>
-                <div class="balance-value">$<span id="balanceDisplay">27.00</span></div>
+                <div class="balance-value">$<span id="balanceDisplay">0.00</span></div>
                 <div class="balance-sub">Available to withdraw</div>
             </div>
             <div class="user-pill">
-                <div class="avatar-circle" id="userAvatar">SC</div>
+                <div class="avatar-circle" id="userAvatar">PJ</div>
                 <div class="user-meta">
-                    <div class="user-name" id="userName">Surendra</div>
-                    <div class="user-id" id="userIdText">ID: 8828732820</div>
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-id" id="userIdText">ID: —</div>
                 </div>
             </div>
         </div>
@@ -942,19 +942,29 @@
     }
 
     const tgUser = tg?.initDataUnsafe?.user;
-    const userId = tgUser?.id || 8828732820; // Default to client ID for testing
-    const firstName = tgUser?.first_name || "Surendra";
+    const userId = tgUser ? tgUser.id : null;
+    const firstName = tgUser?.first_name || (tgUser?.username ? "@" + tgUser.username : "Guest User");
     const ADMIN_ID = 8828732820;
 
-    // Set Header User Info
+    // Set Header User Info & Avatar
     document.getElementById("userName").textContent = firstName;
-    document.getElementById("userIdText").textContent = `ID: ${userId}`;
-    const initials = (firstName.slice(0, 1) + (tgUser?.last_name ? tgUser.last_name.slice(0, 1) : "C")).toUpperCase();
-    document.getElementById("userAvatar").textContent = initials || "SC";
+    document.getElementById("userIdText").textContent = userId ? `ID: ${userId}` : "ID: Guest";
+    
+    const avatarEl = document.getElementById("userAvatar");
+    if (tgUser?.photo_url) {
+        avatarEl.innerHTML = `<img src="${tgUser.photo_url}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    } else if (tgUser?.first_name) {
+        const initials = ((tgUser.first_name[0] || "") + (tgUser.last_name ? tgUser.last_name[0] : "")).toUpperCase();
+        avatarEl.textContent = initials || "PJ";
+    } else {
+        avatarEl.textContent = "PJ";
+    }
 
-    // Show Admin Button if Admin
-    if (userId === ADMIN_ID) {
+    // Show Admin Button ONLY for the verified Admin ID
+    if (userId && Number(userId) === ADMIN_ID) {
         document.getElementById("adminFloatBtn").style.display = "flex";
+    } else {
+        document.getElementById("adminFloatBtn").style.display = "none";
     }
 
     // Default App Settings
@@ -973,15 +983,15 @@
         try { Object.assign(appSettings, JSON.parse(savedSettings)); } catch(e){}
     }
 
-    // User State in LocalStorage
-    const USER_STORAGE_KEY = `payjust_user_${userId}`;
+    // User State in LocalStorage (per user ID)
+    const USER_STORAGE_KEY = `payjust_user_${userId || "guest"}`;
     let userState = {
-        balance: 27.00, // Matches client screenshot balance
-        adsWatchedToday: 5,
-        totalAdsWatched: 80,
-        totalEarnedFromAds: 24.00,
-        friendsInvited: 2,
-        tasksDone: [1, 2, 3, 4],
+        balance: 0.00,
+        adsWatchedToday: 0,
+        totalAdsWatched: 0,
+        totalEarnedFromAds: 0.00,
+        friendsInvited: 0,
+        tasksDone: [],
         lastAdDate: new Date().toISOString().slice(0, 10)
     };
 
