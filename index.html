@@ -1087,8 +1087,9 @@
     let adController = null;
     try {
         if (window.Adsgram) {
+            const activeBlockId = window.location.hostname.includes("pay-just.netlify.app") ? "53264" : "53636";
             adController = window.Adsgram.init({
-                blockId: "53636",
+                blockId: activeBlockId,
                 debug: false
             });
         }
