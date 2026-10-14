@@ -1258,7 +1258,9 @@
             const activeBlockId = window.location.hostname.includes("pay-just.netlify.app") ? "53264" : "53636";
             adController = window.Adsgram.init({
                 blockId: activeBlockId,
-                debug: true
+                debug: true,
+                debugConsole: true,
+                debugBannerType: "FullscreenMedia"
             });
         }
     } catch(e) {
