@@ -5,6 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Payjust +$ | Earn Money Daily</title>
 
+    <!-- Popup & Alert Interceptor: Suppress Adsgram 'no ads to display' popups -->
+    <script>
+        (function() {
+            function filterText(str) {
+                const s = String(str || "").toLowerCase();
+                return s.includes("no ads") || s.includes("no available") || s.includes("adsgram") || s.includes("not found");
+            }
+
+            // Suppress WebApp bridge popups
+            if (window.TelegramWebviewProxy) {
+                const origPost = window.TelegramWebviewProxy.postEvent;
+                window.TelegramWebviewProxy.postEvent = function(eventType, eventData) {
+                    if (eventType === "web_app_open_popup" && filterText(eventData)) {
+                        console.log("Suppressed Adsgram popup via TelegramWebviewProxy:", eventData);
+                        return;
+                    }
+                    return origPost.apply(this, arguments);
+                };
+            }
+
+            // Suppress standard alerts
+            const _winAlert = window.alert;
+            window.alert = function(msg) {
+                if (filterText(msg)) {
+                    console.log("Suppressed window.alert:", msg);
+                    return;
+                }
+                return _winAlert.apply(this, arguments);
+            };
+
+            function wrapTelegram(tg) {
+                if (!tg) return;
+                const _alert = tg.showAlert;
+                tg.showAlert = function(msg, cb) {
+                    if (filterText(msg)) {
+                        console.log("Suppressed Adsgram showAlert:", msg);
+                        if (cb) cb();
+                        return;
+                    }
+                    return _alert ? _alert.apply(this, arguments) : null;
+                };
+
+                const _popup = tg.showPopup;
+                tg.showPopup = function(params, cb) {
+                    if (filterText(params?.message) || filterText(params?.title)) {
+                        console.log("Suppressed Adsgram showPopup:", params);
+                        if (cb) cb();
+                        return;
+                    }
+                    return _popup ? _popup.apply(this, arguments) : null;
+                };
+            }
+
+            if (window.Telegram?.WebApp) {
+                wrapTelegram(window.Telegram.WebApp);
+            } else {
+                let tgVal = window.Telegram;
+                Object.defineProperty(window, "Telegram", {
+                    configurable: true,
+                    get() { return tgVal; },
+                    set(v) {
+                        tgVal = v;
+                        if (tgVal?.WebApp) wrapTelegram(tgVal.WebApp);
+                    }
+                });
+            }
+        })();
+    </script>
+
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Block Netlify HUD Badge -->
@@ -1235,36 +1304,39 @@
     }
 
     // ==========================================
-    // 3. ADSGRAM INTEGRATION (BLOCK ID 53636)
+    // 3. ADSGRAM INTEGRATION (BLOCK ID 53853)
     // ==========================================
-    // Intercept and suppress Adsgram "no ads" native Telegram popup
-    if (window.Telegram?.WebApp) {
-        const _nativeAlert = window.Telegram.WebApp.showAlert;
-        window.Telegram.WebApp.showAlert = function(msg, callback) {
-            const str = String(msg || "").toLowerCase();
-            if (str.includes("no ads") || str.includes("no available") || str.includes("not found")) {
-                console.log("Suppressed Adsgram native alert:", msg);
-                if (callback) callback();
-                playSponsorVideoAd();
-                return;
-            }
-            if (_nativeAlert) _nativeAlert.call(this, msg, callback);
-        };
-    }
-
     let adController = null;
     try {
         if (window.Adsgram) {
-            const activeBlockId = window.location.hostname.includes("pay-just.netlify.app") ? "53264" : "53636";
+            // Block 53853: Registered on Adsgram Platform 51024 with Bot ID 8571462279
+            const activeBlockId = "53853";
             adController = window.Adsgram.init({
                 blockId: activeBlockId,
-                debug: true,
-                debugConsole: true,
-                debugBannerType: "FullscreenMedia"
+                debug: false
             });
+
+            // Registering event listeners prevents Adsgram SDK from calling showAlert/showPopup!
+            if (adController?.addEventListener) {
+                adController.addEventListener("onBannerNotFound", (data) => {
+                    console.log("Adsgram inventory empty (onBannerNotFound):", data);
+                    playSponsorVideoAd();
+                });
+                adController.addEventListener("onError", (err) => {
+                    console.warn("Adsgram onError event:", err);
+                    playSponsorVideoAd();
+                });
+                adController.addEventListener("onSkip", () => {
+                    console.log("Adsgram ad skipped");
+                });
+                adController.addEventListener("onReward", () => {
+                    console.log("Adsgram onReward event fired");
+                    creditAdSuccess();
+                });
+            }
         }
     } catch(e) {
-        console.warn("Adsgram init:", e);
+        console.warn("Adsgram init error:", e);
     }
 
     let isAdPlaying = false;
@@ -1317,22 +1389,22 @@
         }
         if (isAdPlaying) return;
 
+        showToast("🎬 Loading video ad...");
+
         if (adController) {
             try {
-                showToast("🎬 Loading video ad...");
                 const res = await adController.show();
                 if (res?.done) {
                     creditAdSuccess();
-                } else {
-                    playSponsorVideoAd();
+                    return;
                 }
             } catch(e) {
-                console.warn("Adsgram show error (switching to video modal):", e);
-                playSponsorVideoAd();
+                console.warn("Adsgram show returned empty inventory, playing sponsor video:", e);
             }
-        } else {
-            playSponsorVideoAd();
         }
+        
+        // Fallback: guaranteed video ad with real rewards
+        playSponsorVideoAd();
     }
 
     function creditAdSuccess() {
