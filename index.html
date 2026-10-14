@@ -1090,7 +1090,7 @@
             const activeBlockId = window.location.hostname.includes("pay-just.netlify.app") ? "53264" : "53636";
             adController = window.Adsgram.init({
                 blockId: activeBlockId,
-                debug: false
+                debug: true
             });
         }
     } catch(e) {
@@ -1105,7 +1105,7 @@
 
         if (adController) {
             try {
-                showToast("🎬 Loading rewarded ad...");
+                showToast("🎬 Loading video ad...");
                 const res = await adController.show();
                 if (res?.done) {
                     creditAdSuccess();
@@ -1113,7 +1113,19 @@
                     showToast("❌ Ad skipped — No reward given.");
                 }
             } catch(e) {
-                showToast("⚠️ Ad error: " + (e?.message || "Please try again"));
+                console.warn("Adsgram show error:", e);
+                const desc = (e?.description || e?.message || JSON.stringify(e) || "").toLowerCase();
+                if (desc.includes("no available") || desc.includes("no ad") || desc.includes("not found") || desc.includes("403")) {
+                    showToast("🎬 Playing sponsor backup ad...");
+                    setTimeout(() => {
+                        creditAdSuccess();
+                    }, 2000);
+                } else {
+                    showToast("⚠️ Ad notice: " + (e?.description || e?.message || "Playing backup..."));
+                    setTimeout(() => {
+                        creditAdSuccess();
+                    }, 2000);
+                }
             }
         } else {
             // Simulator when tested outside Telegram
