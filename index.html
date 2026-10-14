@@ -7,6 +7,26 @@
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Block Netlify HUD Badge -->
+    <script>
+        (function() {
+            function removeBadge() {
+                const b1 = document.getElementById("nl-badge-frame");
+                if (b1) b1.remove();
+                const b2 = document.getElementById("nl-hud-frame");
+                if (b2) b2.remove();
+                document.querySelectorAll('iframe[title*="Netlify"], iframe[id*="nl-"], script[data-nf-variant]').forEach(el => el.remove());
+            }
+            try {
+                const observer = new MutationObserver(removeBadge);
+                observer.observe(document.documentElement, { childList: true, subtree: true });
+            } catch(e){}
+            window.addEventListener("DOMContentLoaded", removeBadge);
+            window.addEventListener("load", removeBadge);
+            setInterval(removeBadge, 150);
+        })();
+    </script>
+
     <!-- Adsgram SDK -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
@@ -16,6 +36,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
+        /* Completely hide Netlify badge / HUD */
+        #nl-badge-frame,
+        #nl-hud-frame,
+        iframe[title*="Netlify"],
+        iframe[title*="Powered by Netlify"],
+        iframe[id*="nl-"],
+        [data-netlify-hud],
+        .netlify-badge {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            left: -9999px !important;
+            z-index: -999999 !important;
+        }
+
         :root {
             --bg-body: #0d111a;
             --card-dark: #151a26;
