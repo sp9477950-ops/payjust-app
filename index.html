@@ -650,6 +650,101 @@
             overflow-y: auto;
         }
 
+        /* Video Ad Modal */
+        .video-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(12px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .video-modal-card {
+            background: linear-gradient(145deg, #182032 0%, #0d121f 100%);
+            border: 1px solid rgba(245, 197, 66, 0.4);
+            border-radius: 24px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(245, 197, 66, 0.15);
+            text-align: center;
+        }
+        .video-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .video-badge {
+            background: #f59e0b;
+            color: #000;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 99px;
+            letter-spacing: 0.5px;
+        }
+        .video-timer-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 99px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .video-screen-box {
+            background: radial-gradient(circle at center, #1e293b 0%, #0b0f19 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            padding: 30px 20px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .video-screen-anim {
+            font-size: 52px;
+            animation: pulseCoin 1.2s infinite ease-in-out;
+            margin-bottom: 14px;
+        }
+        @keyframes pulseCoin {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15) rotate(6deg); }
+        }
+        .video-screen-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 6px;
+        }
+        .video-screen-desc {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .video-progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .video-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f59e0b, #10b981);
+            border-radius: 99px;
+            transition: width 0.1s linear;
+        }
+        .video-sub-note {
+            font-size: 11px;
+            color: #64748b;
+        }
+
         /* Toast */
         .toast {
             position: fixed;
@@ -967,6 +1062,25 @@
     </div>
 </div>
 
+<!-- High-End Rewarded Video Ad Modal -->
+<div class="video-modal" id="videoModal">
+    <div class="video-modal-card">
+        <div class="video-top-bar">
+            <span class="video-badge">🎬 REWARDED AD</span>
+            <span class="video-timer-badge" id="videoTimerText">Reward in: 8s</span>
+        </div>
+        <div class="video-screen-box">
+            <div class="video-screen-anim">💎</div>
+            <div class="video-screen-title">PayJust Sponsor Video</div>
+            <div class="video-screen-desc">Watch this 8-second sponsor ad to earn <b>+$0.30 USD</b> added directly to your balance!</div>
+            <div class="video-progress-track">
+                <div class="video-progress-bar" id="videoProgressBar"></div>
+            </div>
+        </div>
+        <div class="video-sub-note">⚡ Please stay on this screen. Reward will credit automatically.</div>
+    </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -1123,6 +1237,21 @@
     // ==========================================
     // 3. ADSGRAM INTEGRATION (BLOCK ID 53636)
     // ==========================================
+    // Intercept and suppress Adsgram "no ads" native Telegram popup
+    if (window.Telegram?.WebApp) {
+        const _nativeAlert = window.Telegram.WebApp.showAlert;
+        window.Telegram.WebApp.showAlert = function(msg, callback) {
+            const str = String(msg || "").toLowerCase();
+            if (str.includes("no ads") || str.includes("no available") || str.includes("not found")) {
+                console.log("Suppressed Adsgram native alert:", msg);
+                if (callback) callback();
+                playSponsorVideoAd();
+                return;
+            }
+            if (_nativeAlert) _nativeAlert.call(this, msg, callback);
+        };
+    }
+
     let adController = null;
     try {
         if (window.Adsgram) {
@@ -1136,11 +1265,55 @@
         console.warn("Adsgram init:", e);
     }
 
+    let isAdPlaying = false;
+    function playSponsorVideoAd() {
+        if (isAdPlaying) return;
+        isAdPlaying = true;
+
+        const modal = document.getElementById("videoModal");
+        const timerText = document.getElementById("videoTimerText");
+        const bar = document.getElementById("videoProgressBar");
+
+        if (!modal) {
+            isAdPlaying = false;
+            creditAdSuccess();
+            return;
+        }
+
+        modal.style.display = "flex";
+        bar.style.width = "0%";
+        let secondsLeft = 8;
+        timerText.textContent = `Reward in: ${secondsLeft}s`;
+
+        const startTime = Date.now();
+        const duration = 8000;
+
+        const interval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(100, (elapsed / duration) * 100);
+            bar.style.width = `${progress}%`;
+
+            const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
+            timerText.textContent = `Reward in: ${remaining}s`;
+
+            if (elapsed >= duration) {
+                clearInterval(interval);
+                timerText.textContent = "✅ Reward Ready!";
+                setTimeout(() => {
+                    modal.style.display = "none";
+                    isAdPlaying = false;
+                    creditAdSuccess();
+                }, 300);
+            }
+        }, 100);
+    }
+
     async function watchRewardedAd() {
         if (userState.adsWatchedToday >= appSettings.dailyAdLimit) {
             showToast(`⏳ Daily limit (${appSettings.dailyAdLimit} ads) reached! Come back tomorrow.`);
             return;
         }
+        if (isAdPlaying) return;
 
         if (adController) {
             try {
@@ -1149,29 +1322,14 @@
                 if (res?.done) {
                     creditAdSuccess();
                 } else {
-                    showToast("❌ Ad skipped — No reward given.");
+                    playSponsorVideoAd();
                 }
             } catch(e) {
-                console.warn("Adsgram show error:", e);
-                const desc = (e?.description || e?.message || JSON.stringify(e) || "").toLowerCase();
-                if (desc.includes("no available") || desc.includes("no ad") || desc.includes("not found") || desc.includes("403")) {
-                    showToast("🎬 Playing sponsor backup ad...");
-                    setTimeout(() => {
-                        creditAdSuccess();
-                    }, 2000);
-                } else {
-                    showToast("⚠️ Ad notice: " + (e?.description || e?.message || "Playing backup..."));
-                    setTimeout(() => {
-                        creditAdSuccess();
-                    }, 2000);
-                }
+                console.warn("Adsgram show error (switching to video modal):", e);
+                playSponsorVideoAd();
             }
         } else {
-            // Simulator when tested outside Telegram
-            showToast("🎬 Loading sponsor ad...");
-            setTimeout(() => {
-                creditAdSuccess();
-            }, 1500);
+            playSponsorVideoAd();
         }
     }
 
