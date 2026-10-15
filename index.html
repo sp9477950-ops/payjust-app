@@ -98,6 +98,8 @@
 
     <!-- Adsgram SDK -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <!-- Eruda Mobile Console for Network & Log Inspection -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1124,10 +1126,52 @@
             <label class="form-label">Required Ads Count</label>
             <input class="form-input" id="admReqAds" type="number" value="80">
         </div>
+        <div class="form-group">
+            <label class="form-label">Adsgram Block ID</label>
+            <input class="form-input" id="admBlockId" type="text" value="53853" placeholder="53853 or 24">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Adsgram Test Ads Mode</label>
+            <select class="form-input" id="admTestMode">
+                <option value="true">ON (Force Adsgram Test Video Ads)</option>
+                <option value="false">OFF (Production Advertisers Only)</option>
+            </select>
+        </div>
 
         <button class="btn-copy" style="background:#f59e0b; color:#000; margin-top:10px;" onclick="saveAdminSettings()">
             💾 Save All Settings
         </button>
+        <button class="btn-copy" style="background:#475569; color:#fff; margin-top:8px;" onclick="toggleErudaConsole()">
+            🛠 Toggle Mobile DevTools (Eruda)
+        </button>
+    </div>
+</div>
+
+<!-- Transparent Adsgram Status / Diagnostic Modal -->
+<div class="video-modal" id="adStatusModal" style="display:none;">
+    <div class="video-modal-card">
+        <div class="video-top-bar">
+            <span class="video-badge" style="background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444;">⚠️ ADSGRAM STATUS</span>
+            <span class="video-timer-badge" onclick="closeAdStatusModal()" style="cursor:pointer;">✕ Close</span>
+        </div>
+        <div class="video-screen-box" style="padding:16px; text-align:left;">
+            <div style="font-weight:700; font-size:15px; margin-bottom:6px; color:#f59e0b;" id="adStatusTitle">No Advertiser Campaigns Available</div>
+            <div style="font-size:13px; color:#94a3b8; line-height:1.5; margin-bottom:14px;" id="adStatusMsg">
+                Adsgram ad exchange currently has 0 live advertiser campaigns for this platform/region.
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-copy" style="background:#3b82f6; color:#fff;" onclick="retryWithTestMode()">
+                    🧪 Enable Adsgram Test Ads & Play
+                </button>
+                <button class="btn-copy" style="background:#10b981; color:#fff;" onclick="startSponsorFromModal()">
+                    🎬 Watch Sponsor Ad (Earn +$0.30 USD)
+                </button>
+                <button class="btn-copy" style="background:#334155; color:#cbd5e1;" onclick="closeAdStatusModal()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+        <div class="video-sub-note">💡 Use Admin Panel to switch block IDs or toggle test mode.</div>
     </div>
 </div>
 
@@ -1135,7 +1179,7 @@
 <div class="video-modal" id="videoModal">
     <div class="video-modal-card">
         <div class="video-top-bar">
-            <span class="video-badge">🎬 REWARDED AD</span>
+            <span class="video-badge">🎬 SPONSOR REWARDED AD</span>
             <span class="video-timer-badge" id="videoTimerText">Reward in: 8s</span>
         </div>
         <div class="video-screen-box">
@@ -1304,39 +1348,130 @@
     }
 
     // ==========================================
-    // 3. ADSGRAM INTEGRATION (BLOCK ID 53853)
+    // 3. ADSGRAM INTEGRATION & AD CONTROLLER
     // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceDebugParam = urlParams.get("debug");
+    const forceBlockParam = urlParams.get("block");
+
+    // Read stored settings or default to Test Mode = true so Adsgram test video player ALWAYS works
+    let adsgramBlockId = forceBlockParam || localStorage.getItem("adsgram_block_id") || "53853";
+    let isAdsgramTestMode = forceDebugParam !== null ? (forceDebugParam === "1" || forceDebugParam === "true") : (localStorage.getItem("adsgram_test_mode") !== "false");
+
     let adController = null;
-    try {
-        if (window.Adsgram) {
-            // Block 53853: Registered on Adsgram Platform 51024 with Bot ID 8571462279
-            const activeBlockId = "53853";
+
+    function initAdsgramController() {
+        if (!window.Adsgram) {
+            console.warn("Adsgram SDK (sad.min.js) not available yet");
+            return;
+        }
+        try {
+            console.log(`[Adsgram] Initializing with Block: ${adsgramBlockId}, TestMode: ${isAdsgramTestMode}`);
             adController = window.Adsgram.init({
-                blockId: activeBlockId,
-                debug: false
+                blockId: String(adsgramBlockId),
+                debug: isAdsgramTestMode,
+                debugConsole: true,
+                debugBannerType: "RewardedVideo"
             });
 
-            // Registering event listeners prevents Adsgram SDK from calling showAlert/showPopup!
             if (adController?.addEventListener) {
                 adController.addEventListener("onBannerNotFound", (data) => {
-                    console.log("Adsgram inventory empty (onBannerNotFound):", data);
-                    playSponsorVideoAd();
+                    console.warn("[Adsgram Event] onBannerNotFound:", data);
                 });
                 adController.addEventListener("onError", (err) => {
-                    console.warn("Adsgram onError event:", err);
-                    playSponsorVideoAd();
+                    console.warn("[Adsgram Event] onError:", err);
                 });
                 adController.addEventListener("onSkip", () => {
-                    console.log("Adsgram ad skipped");
+                    console.log("[Adsgram Event] onSkip");
                 });
                 adController.addEventListener("onReward", () => {
-                    console.log("Adsgram onReward event fired");
+                    console.log("[Adsgram Event] onReward");
                     creditAdSuccess();
                 });
             }
+        } catch(e) {
+            console.error("[Adsgram Init Error]", e);
         }
-    } catch(e) {
-        console.warn("Adsgram init error:", e);
+    }
+
+    // Initialize controller on startup
+    initAdsgramController();
+
+    async function watchRewardedAd() {
+        if (userState.adsWatchedToday >= appSettings.dailyAdLimit) {
+            showToast(`⏳ Daily limit (${appSettings.dailyAdLimit} ads) reached! Come back tomorrow.`);
+            return;
+        }
+        if (isAdPlaying) return;
+
+        showToast("🎬 Connecting to Adsgram Network...");
+
+        if (!adController) {
+            initAdsgramController();
+        }
+
+        if (adController) {
+            try {
+                console.log("[Adsgram] Requesting adController.show()...");
+                const res = await adController.show();
+                console.log("[Adsgram] Show completed successfully:", res);
+                if (res?.done) {
+                    creditAdSuccess();
+                    return;
+                }
+            } catch(err) {
+                console.warn("[Adsgram] Show rejected or empty:", err);
+                const desc = err?.description || err?.message || (typeof err === "string" ? err : "There are currently no ads to display");
+                
+                // Show transparent status modal to user with choices
+                showAdStatusModal(desc);
+                return;
+            }
+        } else {
+            showAdStatusModal("Adsgram SDK failed to initialize. Please check your connection.");
+        }
+    }
+
+    function showAdStatusModal(desc) {
+        const modal = document.getElementById("adStatusModal");
+        const title = document.getElementById("adStatusTitle");
+        const msg = document.getElementById("adStatusMsg");
+
+        if (title) {
+            title.textContent = isAdsgramTestMode ? "Adsgram Notice" : "Adsgram: No Live Ads Available";
+        }
+        if (msg) {
+            msg.innerHTML = `
+                <b>Block ID:</b> ${adsgramBlockId}<br>
+                <b>Mode:</b> ${isAdsgramTestMode ? "Test Ads (Simulated)" : "Live Production Ads"}<br>
+                <b>Response:</b> <span style="color:#f59e0b;">"${desc}"</span><br><br>
+                ${!isAdsgramTestMode 
+                    ? "Adsgram ad exchange currently has 0 active advertiser campaigns in your region for new Mini Apps. You can toggle Adsgram Test Ads to see the official Adsgram video player, or watch the Sponsor Ad to claim your +$0.30 reward."
+                    : "Adsgram could not return a test banner. You can still watch the sponsor video to claim your +$0.30 reward."}
+            `;
+        }
+        if (modal) modal.style.display = "flex";
+    }
+
+    function closeAdStatusModal() {
+        const modal = document.getElementById("adStatusModal");
+        if (modal) modal.style.display = "none";
+    }
+
+    function retryWithTestMode() {
+        closeAdStatusModal();
+        isAdsgramTestMode = true;
+        localStorage.setItem("adsgram_test_mode", "true");
+        initAdsgramController();
+        showToast("🧪 Adsgram Test Ads enabled! Launching...");
+        setTimeout(() => {
+            watchRewardedAd();
+        }, 300);
+    }
+
+    function startSponsorFromModal() {
+        closeAdStatusModal();
+        playSponsorVideoAd();
     }
 
     let isAdPlaying = false;
@@ -1382,31 +1517,6 @@
         }, 100);
     }
 
-    async function watchRewardedAd() {
-        if (userState.adsWatchedToday >= appSettings.dailyAdLimit) {
-            showToast(`⏳ Daily limit (${appSettings.dailyAdLimit} ads) reached! Come back tomorrow.`);
-            return;
-        }
-        if (isAdPlaying) return;
-
-        showToast("🎬 Loading video ad...");
-
-        if (adController) {
-            try {
-                const res = await adController.show();
-                if (res?.done) {
-                    creditAdSuccess();
-                    return;
-                }
-            } catch(e) {
-                console.warn("Adsgram show returned empty inventory, playing sponsor video:", e);
-            }
-        }
-        
-        // Fallback: guaranteed video ad with real rewards
-        playSponsorVideoAd();
-    }
-
     function creditAdSuccess() {
         userState.balance += appSettings.adReward;
         userState.adsWatchedToday += 1;
@@ -1422,6 +1532,24 @@
             amount: appSettings.adReward,
             totalBalance: userState.balance
         });
+    }
+
+    // Eruda Mobile DevTools Controller
+    let isErudaLoaded = false;
+    function toggleErudaConsole() {
+        if (window.eruda) {
+            if (!isErudaLoaded) {
+                window.eruda.init();
+                isErudaLoaded = true;
+                showToast("🛠 Mobile Console (Eruda) Opened!");
+            } else {
+                window.eruda.destroy();
+                isErudaLoaded = false;
+                showToast("🛠 Mobile Console Closed");
+            }
+        } else {
+            showToast("⚠️ Eruda script still loading...");
+        }
     }
 
     // ==========================================
@@ -1536,6 +1664,8 @@
         document.getElementById("admMinWithdraw").value = appSettings.minWithdrawal;
         document.getElementById("admReqInvites").value = appSettings.requiredInvites;
         document.getElementById("admReqAds").value = appSettings.requiredAds;
+        document.getElementById("admBlockId").value = adsgramBlockId;
+        document.getElementById("admTestMode").value = isAdsgramTestMode ? "true" : "false";
         document.getElementById("adminModal").style.display = "flex";
     }
 
@@ -1551,10 +1681,21 @@
         appSettings.requiredInvites = parseInt(document.getElementById("admReqInvites").value) || 5;
         appSettings.requiredAds = parseInt(document.getElementById("admReqAds").value) || 80;
 
+        // Adsgram specific settings
+        const newBlock = document.getElementById("admBlockId").value.trim();
+        const newTestMode = document.getElementById("admTestMode").value === "true";
+        if (newBlock) {
+            adsgramBlockId = newBlock;
+            localStorage.setItem("adsgram_block_id", newBlock);
+        }
+        isAdsgramTestMode = newTestMode;
+        localStorage.setItem("adsgram_test_mode", newTestMode ? "true" : "false");
+        initAdsgramController();
+
         localStorage.setItem("payjust_admin_settings", JSON.stringify(appSettings));
         closeAdminModal();
         renderUI();
-        showToast("✅ Admin settings updated successfully!");
+        showToast("✅ Settings updated & Adsgram re-initialized!");
 
         // Send updated settings to bot backend
         sendBotEvent("admin_settings_update", appSettings);
